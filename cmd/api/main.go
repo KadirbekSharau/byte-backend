@@ -3,13 +3,19 @@ package main
 import (
 	"log"
 
-	"github.com/KadirbekSharau/Byte/configs"
+	"github.com/KadirbekSharau/Byte/config"
+	"github.com/KadirbekSharau/Byte/internal/server"
+	"github.com/spf13/viper"
 )
 
 func main() {
-	if err := configs.Init(); err != nil {
+	if err := config.Init(); err != nil {
 		log.Fatal("%s", err.Error())
 	}
 
-	
+	app := server.NewApp()
+
+	if err := app.Run(viper.GetString("port")); err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 }

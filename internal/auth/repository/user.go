@@ -18,7 +18,7 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	}
 }
 
-func (*UserRepository) CreateUser(ctx context.Context, user models.User) error {
+func (*UserRepository) CreateUser(ctx context.Context, user *models.User) error {
 	return errors.New("")
 }
 func (*UserRepository) GetUser(ctx context.Context, email, password string) (*models.User, error) {
