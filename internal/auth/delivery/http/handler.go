@@ -25,7 +25,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 		return
 	}
 
-	if err := h.useCase.SignUp(c.Request.Context(), inp.Username, inp.Password); err != nil {
+	if err := h.useCase.SignUp(c.Request.Context(), inp.Email, inp.Password); err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -41,7 +41,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.useCase.SignIn(c.Request.Context(), inp.Username, inp.Password)
+	token, err := h.useCase.SignIn(c.Request.Context(), inp.Email, inp.Password)
 	if err != nil {
 		if err == auth.ErrUserNotFound {
 			c.AbortWithStatus(http.StatusUnauthorized)
