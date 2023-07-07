@@ -1,4 +1,4 @@
-package authUsecase
+package usecase
 
 import (
 	"context"

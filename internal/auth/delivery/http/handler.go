@@ -18,7 +18,7 @@ func NewHandler(useCase auth.UseCase) *Handler {
 }
 
 func (h *Handler) SignUp(c *gin.Context) {
-	inp := new(signInput)
+	inp := new(signUpInput)
 
 	if err := c.BindJSON(inp); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -34,7 +34,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 }
 
 func (h *Handler) SignIn(c *gin.Context) {
-	inp := new(signInput)
+	inp := new(signInInput)
 
 	if err := c.BindJSON(inp); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)

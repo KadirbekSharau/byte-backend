@@ -10,29 +10,46 @@ import (
 )
 
 const (
-	createUsersTableSQL = `CREATE TABLE IF NOT EXISTS users(
-		id serial PRIMARY KEY,
-		username VARCHAR (50),
-		email VARCHAR (50) UNIQUE NOT NULL,
-		password VARCHAR (70) NOT NULL
-	);`
+	createUsersTableSQL = `CREATE TABLE users (
+			id UUID PRIMARY KEY,
+			username VARCHAR(50),
+			email VARCHAR(50) UNIQUE,
+			password VARCHAR(256),
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		);`
 
-	createHabitsTableSQL = `CREATE TABLE IF NOT EXISTS habits(
-		id serial PRIMARY KEY,
-		user_id INT REFERENCES users(id),
-		title VARCHAR (100) NOT NULL,
-		description TEXT,
-		start_date DATE NOT NULL,
-		end_date DATE
-	);`
+	createHabitsTableSQL = `CREATE TABLE habits (
+			id UUID PRIMARY KEY,
+			user_id UUID REFERENCES users(id),
+			name VARCHAR(100),
+			description TEXT,
+			start_date DATE,
+			end_date DATE,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		);`
 
-	createTasksTableSQL = `CREATE TABLE IF NOT EXISTS tasks(
-		id serial PRIMARY KEY,
-		user_id INT REFERENCES users(id),
-		title VARCHAR (100) NOT NULL,
-		description TEXT,
-		date DATE NOT NULL
-	);`
+	createHabitProgressTableSQL = `CREATE TABLE habit_progress (
+			id UUID PRIMARY KEY,
+			habit_id UUID REFERENCES habits(id),
+			date DATE,
+			status BOOLEAN,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		);`
+
+	createTasksTableSQL = `CREATE TABLE tasks (
+			id UUID PRIMARY KEY,
+			user_id UUID REFERENCES users(id),
+			name VARCHAR(100),
+			description TEXT,
+			start_time TIME,
+			end_time TIME,
+			date DATE,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		);`
 )
 
 func NewPostgresDB() (*sqlx.DB, error) {
@@ -70,6 +87,9 @@ func migrateDB(db *sqlx.DB) error {
 		return err
 	}
 	if _, err := db.Exec(createTasksTableSQL); err != nil {
+		return err
+	}
+	if _, err := db.Exec(createHabitProgressTableSQL); err != nil {
 		return err
 	}
 
