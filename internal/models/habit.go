@@ -2,13 +2,15 @@ package models
 
 import "time"
 
-
 type Habit struct {
-	ID        int       `db:"id"`
-	Name      string    `db:"name"`
-	StartDate time.Time `db:"start_date"`
-	EndDate   time.Time `db:"end_date"`
-	UserId    int       `db:"user_id"`
+	ID          string    `db:"id"`
+	UserID      string    `db:"user_id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	Frequency   string    `db:"frequency"`
+	Goal        string    `db:"goal"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type HabitProgress struct {

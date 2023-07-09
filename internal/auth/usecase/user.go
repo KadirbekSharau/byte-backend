@@ -16,15 +16,15 @@ type AuthClaims struct {
 	User *models.User `json:"user"`
 }
 
-type AuthUseCase struct {
-	repo auth.UserRepository
+type authUseCase struct {
+	repo auth.Repository
 	hashSalt string
 	signingKey []byte
 	expireDuration time.Duration
 }
 
-func NewAuthUseCase(repo auth.UserRepository, hashSalt string, signingKey []byte, expireDuration time.Duration) *AuthUseCase {
-	return &AuthUseCase{
+func NewAuthUseCase(repo auth.Repository, hashSalt string, signingKey []byte, expireDuration time.Duration) *authUseCase {
+	return &authUseCase{
 		repo: repo,
 		hashSalt: hashSalt,
 		signingKey: signingKey,
@@ -33,7 +33,7 @@ func NewAuthUseCase(repo auth.UserRepository, hashSalt string, signingKey []byte
 }
 
 
-func (a *AuthUseCase) SignUp(ctx context.Context, email, password string) error {
+func (a *authUseCase) SignUp(ctx context.Context, email, password string) error {
 	pwd := sha256.New()
 	pwd.Write([]byte(password))
 	pwd.Write([]byte(a.hashSalt))
@@ -46,7 +46,7 @@ func (a *AuthUseCase) SignUp(ctx context.Context, email, password string) error 
 	return a.repo.CreateUser(ctx, user)
 }
 
-func (a *AuthUseCase) SignIn(ctx context.Context, email, password string) (string, error) {
+func (a *authUseCase) SignIn(ctx context.Context, email, password string) (string, error) {
 	pwd := sha256.New()
 	pwd.Write([]byte(password))
 	pwd.Write([]byte(a.hashSalt))
@@ -69,7 +69,7 @@ func (a *AuthUseCase) SignIn(ctx context.Context, email, password string) (strin
 	return token.SignedString(a.signingKey)
 }
 
-func (a *AuthUseCase) ParseToken(ctx context.Context, accessToken string) (*models.User, error) {
+func (a *authUseCase) ParseToken(ctx context.Context, accessToken string) (*models.User, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken, 
 		&AuthClaims{},

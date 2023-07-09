@@ -3,9 +3,10 @@ package habits
 import (
 	"context"
 
+	"github.com/KadirbekSharau/Byte/internal/models"
 )
 
 type UseCase interface {
-	AddNewHabit(ctx context.Context, name, description string) (string, error)
-	TrackHabitProgressByDay(ctx context.Context, habitID, progress string) (string, error)
+	CreateHabit(ctx context.Context, habit *models.Habit) error
+	//TrackHabitProgressByDay(ctx context.Context, habitID, progress string) (string, error)
 }

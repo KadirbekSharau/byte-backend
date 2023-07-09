@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	createUsersTableSQL = `CREATE TABLE users (
+	createUsersTableSQL = `CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY,
 			username VARCHAR(50),
 			email VARCHAR(50) UNIQUE,
@@ -19,7 +19,7 @@ const (
 			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 		);`
 
-	createHabitsTableSQL = `CREATE TABLE habits (
+	createHabitsTableSQL = `CREATE TABLE IF NOT EXISTS habits (
 			id UUID PRIMARY KEY,
 			user_id UUID REFERENCES users(id),
 			name VARCHAR(100),
@@ -30,26 +30,44 @@ const (
 			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 		);`
 
-	createHabitProgressTableSQL = `CREATE TABLE habit_progress (
-			id UUID PRIMARY KEY,
-			habit_id UUID REFERENCES habits(id),
-			date DATE,
-			status BOOLEAN,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-		);`
+	createTriggersTableSQL = `CREATE TABLE IF NOT EXISTS triggers (
+		id UUID PRIMARY KEY,
+		habit_id UUID REFERENCES habits(id),
+		name VARCHAR(255) NOT NULL,
+		description TEXT,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
 
-	createTasksTableSQL = `CREATE TABLE tasks (
-			id UUID PRIMARY KEY,
-			user_id UUID REFERENCES users(id),
-			name VARCHAR(100),
-			description TEXT,
-			start_time TIME,
-			end_time TIME,
-			date DATE,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-		);`
+	createHabitLogsTableSQL = `CREATE TABLE IF NOT EXISTS habit_logs (
+		id UUID PRIMARY KEY,
+		habit_id UUID REFERENCES habits(id),
+		user_id UUID REFERENCES users(id),
+		date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		status BOOLEAN,
+		notes TEXT,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	createHabitRemindersTableSQL = `CREATE TABLE IF NOT EXISTS reminders (
+		id UUID PRIMARY KEY,
+		habit_id UUID REFERENCES habits(id),
+		user_id UUID REFERENCES users(id),
+		reminder_time TIMESTAMP WITH TIME ZONE,
+		repeat_frequency VARCHAR(255),
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	createHabitRewardsTableSQL = `CREATE TABLE IF NOT EXISTS rewards (
+		id UUID PRIMARY KEY,
+		user_id UUID REFERENCES users(id),
+		reward_name VARCHAR(255),
+		date_achieved TIMESTAMP WITH TIME ZONE,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
 )
 
 func NewPostgresDB() (*sqlx.DB, error) {
@@ -71,27 +89,22 @@ func NewPostgresDB() (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	err = migrateDB(db)
-	if err != nil {
-		return nil, err
-	}
-
+	cfg.migrateDB(db)
 	return db, nil
 }
 
-func migrateDB(db *sqlx.DB) error {
-	if _, err := db.Exec(createUsersTableSQL); err != nil {
-		return err
-	}
-	if _, err := db.Exec(createHabitsTableSQL); err != nil {
-		return err
-	}
-	if _, err := db.Exec(createTasksTableSQL); err != nil {
-		return err
-	}
-	if _, err := db.Exec(createHabitProgressTableSQL); err != nil {
-		return err
-	}
+func (cfg *PostgreConfig) migrateDB(db *sqlx.DB)  {
+	executeTable(db, createUsersTableSQL)
+	executeTable(db, createHabitsTableSQL)
+	executeTable(db, createTriggersTableSQL)
+	executeTable(db, createHabitLogsTableSQL)
+	executeTable(db, createHabitRemindersTableSQL)
+	executeTable(db, createHabitRewardsTableSQL)
+}
 
+func executeTable(db *sqlx.DB, table string) error {
+	if _, err := db.Exec(table); err != nil {
+		return fmt.Errorf("error creating database table: %s", err.Error())
+	}
 	return nil
 }

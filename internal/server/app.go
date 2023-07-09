@@ -13,6 +13,10 @@ import (
 	authhttp "github.com/KadirbekSharau/Byte/internal/auth/delivery/http"
 	authRepository "github.com/KadirbekSharau/Byte/internal/auth/repository"
 	authUsecase "github.com/KadirbekSharau/Byte/internal/auth/usecase"
+	"github.com/KadirbekSharau/Byte/internal/habits"
+	habithttp "github.com/KadirbekSharau/Byte/internal/habits/delivery/http"
+	habitRepository "github.com/KadirbekSharau/Byte/internal/habits/repository"
+	habitUsecase "github.com/KadirbekSharau/Byte/internal/habits/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -20,6 +24,7 @@ import (
 type App struct {
 	httpServer *http.Server
 	authUC     auth.UseCase
+	habitUC habits.UseCase
 }
 
 func NewApp() *App {
@@ -29,12 +34,16 @@ func NewApp() *App {
 	}
 
 	authRepository := authRepository.NewUserRepository(db)
+	habitRepository := habitRepository.NewHabitRepository(db)
 	return &App{
 		authUC: authUsecase.NewAuthUseCase(
 			authRepository,
 			os.Getenv("HASH_SALT"),
 			[]byte(os.Getenv("SIGNING_KEY")),
 			viper.GetDuration("auth.token_ttl"),
+		),
+		habitUC: habitUsecase.NewHabitUseCase(
+			habitRepository,
 		),
 	}
 }
@@ -47,7 +56,9 @@ func (a *App) Run(port string) error {
 		gin.Logger(),
 	)
 
+	// Registering API endpoints
 	authhttp.RegisterHTTPEndpoints(router, a.authUC)
+	habithttp.RegisterHabitHTTPEndpoints(router, a.habitUC)
 
 	// HTTP Server
 	a.httpServer = &http.Server{
@@ -58,6 +69,7 @@ func (a *App) Run(port string) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	// Server run
 	go func() {
 		if err := a.httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("Failed to listen and serve: %+v", err)

@@ -6,7 +6,7 @@ import (
 	"github.com/KadirbekSharau/Byte/internal/models"
 )
 
-type UserRepository interface {
+type Repository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUser(ctx context.Context, email, password string) (*models.User, error)
 }
